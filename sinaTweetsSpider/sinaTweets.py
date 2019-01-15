@@ -5,6 +5,7 @@ import json
 import random
 import sinaTweetsSpider.Proxies
 import sinaTweetsSpider.UserAgent
+import time
 
 #定义要爬取的微博大V的微博ID
 #id='1259110474'
@@ -54,6 +55,20 @@ def get_userInfo(id):
     urank=content.get('userInfo').get('urank')
     print("微博昵称："+name+"\n"+"微博主页地址："+profile_url+"\n"+"微博头像地址："+profile_image_url+"\n"+"是否认证："+str(verified)+"\n"+"微博说明："+description+"\n"+"关注人数："+str(guanzhu)+"\n"+"粉丝数："+str(fensi)+"\n"+"性别："+gender+"\n"+"微博等级："+str(urank)+"\n")
 
+#判断日期是否符合格式,不符合直接添加(当年发的微博没有年份，所以需要判断一下)
+def is_valid_date(str_date):
+    try:
+       time.strptime(str_date,"%Y-%m-%d")
+       return True
+    except:
+       return False
+
+def add_year_date(str_date):
+    if(is_valid_date(str_date)):
+        str_date = str_date
+    else:
+        str_date = '2019-'+str_date
+    return str_date
 
 #获取微博内容信息,并保存到文本中，内容包括：每条微博的内容、微博详情页面地址、点赞数、评论数、转发数等
 def get_weibo(id,file):
@@ -79,7 +94,7 @@ def get_weibo(id,file):
                         text=mblog.get('text')
                         with open(file,'a',encoding='utf-8') as fh:
                             fh.write("----第"+str(i)+"页，第"+str(j)+"条微博----"+"\n")
-                            fh.write("微博地址："+str(scheme)+"\n"+"发布时间："+str(created_at)+"\n"+"微博内容："+text+"\n"+"点赞数："+str(attitudes_count)+"\n"+"评论数："+str(comments_count)+"\n"+"转发数："+str(reposts_count)+"\n")
+                            fh.write("微博地址："+str(scheme)+"\n"+"发布时间："+str(add_year_date(created_at))+"\n"+"微博内容："+text+"\n"+"点赞数："+str(attitudes_count)+"\n"+"评论数："+str(comments_count)+"\n"+"转发数："+str(reposts_count)+"\n")
                 i+=1
             else:
                 break
