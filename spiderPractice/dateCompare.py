@@ -30,6 +30,7 @@ def is_valid_date(str_date):
 
 print(is_valid_date('12-8'))
 
+#将不符合规格的日期加上2019
 def add_year_date(str_date):
     if(is_valid_date(str_date)):
         str_date = str_date
@@ -38,3 +39,15 @@ def add_year_date(str_date):
     return str_date
 
 print(add_year_date('01-01'))
+
+#判断日期是否在指定时间范围内
+def is_target_date(str_date,start_date):
+    cur_array = time.strptime(str_date,"%Y-%m-%d")
+    cur_stamp = time.mktime(cur_array)
+    start_array = time.strptime(start_date,"%Y-%m-%d")
+    start_stamp = time.mktime(start_array)
+    return cur_stamp >= start_stamp
+
+print(is_target_date('2017-01-01','2018-01-01'))  # False
+print(is_target_date('2019-01-01','2018-01-01'))  # True
+print(is_target_date('2018-01-01','2018-01-01'))  # True
