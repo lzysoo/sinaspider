@@ -9,8 +9,9 @@ import time
 from lxml import etree
 
 #定义要爬取的微博大V的微博ID
-#id='1259110474'
-id='1230663070'
+#id='1219847813'
+#id='1230663070'
+id = '3945647785'
 
 #设置代理IP
 #proxy_addr="122.241.72.191:808"
@@ -59,6 +60,8 @@ def get_userInfo(id):
     gender=content.get('userInfo').get('gender')
     urank=content.get('userInfo').get('urank')
     print("微博昵称："+name+"\n"+"微博主页地址："+profile_url+"\n"+"微博头像地址："+profile_image_url+"\n"+"是否认证："+str(verified)+"\n"+"微博说明："+description+"\n"+"关注人数："+str(guanzhu)+"\n"+"粉丝数："+str(fensi)+"\n"+"性别："+gender+"\n"+"微博等级："+str(urank)+"\n")
+    with open('sina.txt','a',encoding = 'utf-8') as userInfo:
+        userInfo.write(id + "\t" + name+ "\t" + profile_url + "\t" + str(verified) + "\t" + description + "\t" + str(guanzhu) + "\t" +str(fensi) + "\t" + gender + "\t" + str(urank) + "\n")
 
 #判断日期是否符合格式,不符合直接添加(当年发的微博没有年份，所以需要判断一下)
 def is_valid_date(str_date):
@@ -135,7 +138,7 @@ def get_weibo(id,file):
                         created_at = mblog.get('created_at')
                         new_created_at = add_year_date(created_at)
                         #判断时间是否在2019-01-01之后，是则爬取，否则停止
-                        if(is_target_date(new_created_at,'2019-01-01')):
+                        if(is_target_date(new_created_at,'2018-01-01')):
                             attitudes_count=mblog.get('attitudes_count')
                             comments_count=mblog.get('comments_count')
                             reposts_count=mblog.get('reposts_count')
@@ -149,8 +152,10 @@ def get_weibo(id,file):
                             new_text = text_html.xpath('string(.)')
                             #print("text:" + new_text)
                             with open(file,'a',encoding='utf-8') as fh:
-                                fh.write("----第"+str(i)+"页，第"+str(j)+"条微博----"+"\n")
-                                fh.write("微博地址："+str(scheme)+"\n"+"发布时间："+str(new_created_at)+"\n"+"微博内容："+new_text+"\n"+"点赞数："+str(attitudes_count)+"\n"+"评论数："+str(comments_count)+"\n"+"转发数："+str(reposts_count)+"\n")
+                                #fh.write("----第"+str(i)+"页，第"+str(j)+"条微博----"+"\n")
+                                #fh.write("微博地址："+str(scheme)+"\n"+"发布时间："+str(new_created_at)+"\n"+"微博内容："+new_text+"\n"+"点赞数："+str(attitudes_count)+"\n"+"评论数："+str(comments_count)+"\n"+"转发数："+str(reposts_count)+"\n")
+                                fh.write(id + "\t" + str(scheme) + "\t" + str(new_created_at) + "\t" + new_text + "\t" + str(attitudes_count) + "\t" + str(comments_count) + "\t" + str(reposts_count) + "\n")
+
                         else:
                             return
                 i+=1
