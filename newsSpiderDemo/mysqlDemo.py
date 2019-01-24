@@ -5,22 +5,28 @@ import numpy as np
 
 conn = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456',db='crawler')
 cur = conn.cursor()
-cur.execute("SELECT * FROM huxiu_news_spider")
+cur.execute("SELECT * FROM huxiu_news")
 #result = cur.fetchall()
 #for r in result:
  #   print(r)
 #print(result)
-data = pd.DataFrame(list(cur.fetchall()))
+data = cur.fetchall()
+cols = cur.description
+col = []
+for i in cols:
+    col.append(i[0])
+data = list(map(list,data))
+data = pd.DataFrame(data,columns = col)
 cur.close()
 conn.close()
 
 print(data.shape)
 print(data.info())
-print(any(data.duplicated()))
-print(any(data.isnull()))
-data_rownull = data.shape[0] - data.count()
+#print(any(data.duplicated()))
+#print(any(data.isnull()))
+#data_rownull = data.shape[0] - data.count()
 #print(data_rownull)
-data_rownull = data.shape[1] - data.count(axis=1)
+#data_rownull = data.shape[1] - data.count(axis=1)
 #print(data_rownull)
 '''
 

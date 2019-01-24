@@ -4,13 +4,17 @@ import pandas as pd
 import pymysql
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 import re
 from wordcloud import WordCloud,STOPWORDS,ImageColorGenerator
 from PIL import Image
 import os
 import jieba
 from os import path
+# 解决matplotlib绘制图片汉字不能正常显示问题，动态设置
+from pylab import *
+mpl.rcParams['font.sans-serif'] = ['SimHei']
+mpl.rcParams['axes.unicode_minus'] = False
 
 plt.style.use('ggplot')
 fig = plt.figure(figsize=(8,5))
@@ -23,13 +27,21 @@ fontsize_text = 10
 # 数据清洗
 #  # #  # #  # # # #  # #  # # # #  # #  # # # #  # #  # #
 def parse_huxiu():
-    con = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='crawler')
+    con = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='crawler',charset = 'utf8')
     cur = con.cursor()
-    cur.execute("SELECT * FROM huxiu_news_spider")
+    cur.execute("SELECT * FROM huxiu_news")
     #result = cur.fetchall()
     #print(result)
-    data = pd.DataFrame(list(cur.fetchall()))  #可能有问题
+    #data = pd.DataFrame(list(cur.fetchall()))  #只取出了数据，没有列名，导致数据清洗时出问题
     #print(data)
+    # 将列名和数据一同取出
+    data = cur.fetchall()
+    cols = cur.description
+    col = []
+    for i in cols:
+        col.append(i[0])
+    data = list(map(list, data))
+    data = pd.DataFrame(data, columns=col)
     cur.close()
     con.close()
 
@@ -64,6 +76,10 @@ def parse_huxiu():
     data['write_time'] = data['write_time'].replace('.*小时前','2019-01-24',regex = True)
     data['write_time'] = data['write_time'].replace('1天前','2019-01-23',regex = True)
     data['write_time'] = data['write_time'].replace('2天前','2019-01-22',regex = True)
+    data['write_time'] = data['write_time'].replace('3天前', '2019-01-21', regex=True)
+    data['write_time'] = data['write_time'].replace('4天前', '2019-01-20', regex=True)
+    data['write_time'] = data['write_time'].replace('5天前', '2019-01-19', regex=True)
+    data['write_time'] = data['write_time'].replace('6天前', '2019-01-18', regex=True)
     data['write_time'] = pd.to_datetime(data['write_time'])
 
     #删除部分行后，index中断，需重新设置index
@@ -80,7 +96,7 @@ def parse_huxiu():
 
 # 分析部分
 #  # #  # #  # # # #  # #  # # # #  # #  # # # #  # #  # #
-# 查看总体概括、文章发布变化
+# 1 查看总体概括、文章发布变化
 def analysis1(data):
     # 汇总统计
     # print(data.describe())
@@ -202,6 +218,7 @@ def analysis4(data):
     print(data[:10])
     print(data[-10:])
 
+'''
 # 5 收藏和评论的分布直方图
 def analysis5(data):
     # 1 matplot做，添加不了kde线
@@ -216,7 +233,7 @@ def analysis5(data):
     sns.distplot(data['favorites'])
     plt.tight_layout()  # 自动控制空白边缘，以全部显示x轴名称
     plt.show()
-
+'''
 # 6 散点图查看收藏和评论数的关系，发现个别异常
 def analysis6(data):
     plt.scatter(data['favorites'],data['comment'],s=8,color='#1362A3')
@@ -341,8 +358,8 @@ def analysis10(data):
         # textprops={'fontsize': 14, 'color': 'w'} # 设置文字颜色
         textprops={'fontsize': 12, 'color': 'w'} # 设置文字颜色
         )
-    plt.title('三分之一文章的标题喜欢用问号',color=colors,fontsize=fontsize_title)
-
+    plt.title("三分之一文章的标题喜欢用问号",color=colors,fontsize=fontsize_title)
+    #plt.title("三分之一文章的标题喜欢用问号")
     plt.axis('equal')
 
     plt.axis('off')
@@ -354,4 +371,4 @@ def analysis10(data):
 if __name__ == '__main__':
     # parse_huxiu() # test ok
     data = parse_huxiu()
-    analysis9(data)
+    analysis2(data)
