@@ -292,10 +292,10 @@ def analysis9(data):
     # text = jieba.del_word('如何')
     d = path.dirname(__file__) if "__file__" in locals() else os.getcwd()
 
-    background_Image = np.array(Image.open(path.join(d, "tiger.png")))
+    background_Image = np.array(Image.open(path.join(d, "qiaoba.png")))
     # background_Image = plt.imread('E:\my_Python\training\1exercise\tiger.png')
 
-    font_path = 'C:\Windows\Fonts\SourceHanSansCN-Regular.otf'  # 思源黑,黑体simhei.ttf
+    font_path = 'C:\Windows\Fonts\simhei.ttf'  # 思源黑,黑体simhei.ttf
     # 添加stopswords
     stopwords = set()
     # 先运行对text进行词频统计再排序，再选择要增加的停用词
@@ -371,4 +371,4 @@ def analysis10(data):
 if __name__ == '__main__':
     # parse_huxiu() # test ok
     data = parse_huxiu()
-    analysis2(data)
+    analysis9(data)
