@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 
 #db = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456',db='news',charset='utf8')
 #cursor = db.cursor()
-connect = create_engine('mysql + pymysql://root:123456@localhost:3306/crawler?charset=utf8')
+connect = create_engine("mysql+pymysql://root:123456@localhost:3306/crawler?charset=utf8")
 
 class Handler(BaseHandler):
     crawl_config ={
@@ -26,7 +26,7 @@ class Handler(BaseHandler):
     def on_start(self):
         for page in range(2,3):
             #print('正在爬去第%s页' % page)
-            self.crawl('https://www.huxiu.com/v2_action/article_list',method='POST',data={'page':page}, validate_cert=False)
+            self.crawl('https://www.huxiu.com/v2_action/article_list',method='POST',data={'page':page},callback=self.index_page, validate_cert=False)
 
     @config(age=10 * 24 * 60 * 60)
     def index_page(self, response):
@@ -40,19 +40,20 @@ class Handler(BaseHandler):
             'write_time':item('.time').text(),
             'comment':item('.icon-cmt+ em').text(),
             'favorites':item('.icon-fvr+ em').text(),
-            'abstract':item('.mob-sub').text()
+            'abstract':item('.mob-sub').text(),
+            'tag':item('column-link').text()
         }for item in lis]
-        print(data)
+        #print(data)
         return data
         #for each in response.doc('a[href^="http"]').items():
             #self.crawl(each.attr.href, callback=self.detail_page)
 
-    @config(priority=2)
+    '''@config(priority=2)
     def detail_page(self, response):
         return {
             "url": response.url,
             "title": response.doc('title').text(),
-        }
+        }'''
 
     def on_result(self, result):
         if result:

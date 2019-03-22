@@ -4,7 +4,7 @@ import pandas as pd
 import pymysql
 import numpy as np
 import matplotlib.pyplot as plt
-#import seaborn as sns
+import seaborn as sns
 import re
 from wordcloud import WordCloud,STOPWORDS,ImageColorGenerator
 from PIL import Image
@@ -29,7 +29,8 @@ fontsize_text = 10
 def parse_huxiu():
     con = pymysql.connect(host='localhost', port=3306, user='root', passwd='123456', db='crawler',charset = 'utf8')
     cur = con.cursor()
-    cur.execute("SELECT * FROM huxiu_news")
+    cur.execute("SELECT * FROM huxiu_news_crawler")
+    #cur.execute("SELECT * FROM huxiu_news_crawler and write_time > '2016-01-01' and tag is null")
     #result = cur.fetchall()
     #print(result)
     #data = pd.DataFrame(list(cur.fetchall()))  #只取出了数据，没有列名，导致数据清洗时出问题
@@ -73,13 +74,13 @@ def parse_huxiu():
     #将数据列改为数值列
     data = data.apply(pd.to_numeric,errors = 'ignore')
     #修改时间，并转换为datetime格式
-    data['write_time'] = data['write_time'].replace('.*小时前','2019-01-24',regex = True)
-    data['write_time'] = data['write_time'].replace('1天前','2019-01-23',regex = True)
-    data['write_time'] = data['write_time'].replace('2天前','2019-01-22',regex = True)
-    data['write_time'] = data['write_time'].replace('3天前', '2019-01-21', regex=True)
-    data['write_time'] = data['write_time'].replace('4天前', '2019-01-20', regex=True)
-    data['write_time'] = data['write_time'].replace('5天前', '2019-01-19', regex=True)
-    data['write_time'] = data['write_time'].replace('6天前', '2019-01-18', regex=True)
+    data['write_time'] = data['write_time'].replace('.*小时前','2019-03-17',regex = True)
+    data['write_time'] = data['write_time'].replace('1天前','2019-03-16',regex = True)
+    data['write_time'] = data['write_time'].replace('2天前','2019-03-15',regex = True)
+    data['write_time'] = data['write_time'].replace('3天前', '2019-03-14', regex=True)
+    data['write_time'] = data['write_time'].replace('4天前', '2019-03-13', regex=True)
+    data['write_time'] = data['write_time'].replace('5天前', '2019-03-12', regex=True)
+    data['write_time'] = data['write_time'].replace('6天前', '2019-03-11', regex=True)
     data['write_time'] = pd.to_datetime(data['write_time'])
 
     #删除部分行后，index中断，需重新设置index
@@ -92,6 +93,8 @@ def parse_huxiu():
     #增加年份列
     data['year'] = data['write_time'].dt.year
 
+    #print(data.info())
+    #print(data.describe())
     return data
 
 # 分析部分
@@ -99,9 +102,9 @@ def parse_huxiu():
 # 1 查看总体概括、文章发布变化
 def analysis1(data):
     # 汇总统计
-    # print(data.describe())
-    # print(data['name'].describe())
-    # print(data['write_time'].describe())
+    print(data.describe())
+    print(data['name'].describe())
+    print(data['write_time'].describe())
 
     data.set_index(data['write_time'],inplace=True)
     data = data.resample('Q').count()['name'] #以季度汇总
@@ -121,7 +124,7 @@ def analysis1(data):
         plt.text(x, y + 10, '%.0f' % y, ha='center', color=colors, fontsize=fontsize_text)
         # '%.0f' %y 设置标签格式不带小数
     # 设置标题及横纵坐标轴标题
-    plt.title('虎嗅网文章数量发布变化(2012-2018)', color=colors, fontsize=fontsize_title)
+    plt.title('虎嗅网文章数量发布变化(2012-2019)', color=colors, fontsize=fontsize_title)
     plt.xlabel('时期')
     plt.ylabel('文章(篇)')
     plt.tight_layout()  # 自动控制空白边缘
@@ -131,10 +134,10 @@ def analysis1(data):
 # 2 文章收藏量分析
 def analysis2(data):
     # # 总收藏排名
-    # top = data.sort_values(['favorites'],ascending = False)
-    # # 收藏前100
-    # top.index = (range(1,len(top.index)+1)) # 重置index，并从1开始编号
-    # print(top[:100][['title','favorites','comment']])
+    top = data.sort_values(['favorites'],ascending = False)
+    # 收藏前100
+    top.index = (range(1,len(top.index)+1)) # 重置index，并从1开始编号
+    print(top[:10][['title','favorites','comment']])
 
     # 评论前100
     # top = data.sort_values(['comment'],ascending = False)
@@ -166,7 +169,7 @@ def analysis2(data):
         )
     # 添加x轴标签
     years = data['year'].unique()
-    plt.xticks(list(range(7)),years)
+    plt.xticks(list(range(4)),years)
     plt.xlabel('Year')
     plt.ylabel('文章收藏数量')
     plt.title('历年 TOP3 文章收藏量比较',color = colors,fontsize=fontsize_title)
@@ -218,7 +221,6 @@ def analysis4(data):
     print(data[:10])
     print(data[-10:])
 
-'''
 # 5 收藏和评论的分布直方图
 def analysis5(data):
     # 1 matplot做，添加不了kde线
@@ -232,6 +234,40 @@ def analysis5(data):
     # 用seaborn做简单
     sns.distplot(data['favorites'])
     plt.tight_layout()  # 自动控制空白边缘，以全部显示x轴名称
+    plt.show()
+# 11 网评数量和文章数量的关系
+def analysis11(data):
+    #data.set_index(data['comment'],inplace = True)
+    #data = data.resample().count()['title']
+    #data = data.to_period()
+    #创建x,y轴标签
+    x = np.arange(0,2500,5)
+    ax1.plot(x,  # x、y坐标
+             color=color_line,  # 折线图颜色为红色
+             marker='o', markersize = 4  # 标记形状、大小设置
+             )
+    ax1.set_xticks(x)
+    #ax1.set_xticklabels(data.set_index)
+    plt.xticks(rotation = 90) #旋转90度，不至于太拥挤
+    for x, y in zip(x, data.values):
+        plt.text(x, y + 10, '%.0f' % y, ha='center', color=colors, fontsize=fontsize_text)
+        # '%.0f' %y 设置标签格式不带小数
+    # 设置标题及横纵坐标轴标题
+    plt.title('虎嗅网网评数量和新闻数量的关系', color=colors, fontsize=fontsize_title)
+    plt.xlabel('网评数')
+    plt.ylabel('新闻数量(篇)')
+    plt.tight_layout()  # 自动控制空白边缘
+    plt.savefig('虎嗅网网评数量和新闻数量的关系.png', dpi=200)
+    plt.show()
+
+'''
+def analysis12(data):
+    plt.scatter(data['comment'],data.count()['title'],s = 8,color = '#1362A3')
+    plt.xlabel('新闻网评数')
+    plt.ylabel('新闻数量')
+    plt.title('新闻网评数与新闻数量的关系',color = colors,fontsize = fontsize_title)
+    plt.tight_layout()
+    plt.savefig('新闻网评数与新闻数量的关系.png',dpi = 200)
     plt.show()
 '''
 # 6 散点图查看收藏和评论数的关系，发现个别异常
@@ -371,4 +407,4 @@ def analysis10(data):
 if __name__ == '__main__':
     # parse_huxiu() # test ok
     data = parse_huxiu()
-    analysis9(data)
+    analysis1(data)
